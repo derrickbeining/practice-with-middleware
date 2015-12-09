@@ -195,7 +195,7 @@ describe('app', function(){
         log += ' called f2.';
         setTimeout(function(){
           next();
-        }, 500); // calls `next` only after 0.5 seconds
+        }, 100); // calls `next` only after 0.1 seconds
       });
       app.use(function f3 (req, res, next){
         log += ' called f3.';
@@ -207,7 +207,7 @@ describe('app', function(){
       setTimeout(function(){
         expect(log).toBe('called f1. called f2. called f3.');
         done();
-      }, 600); // 0.6 seconds later, f3 was called after calling `next`.
+      }, 200); // 0.2 seconds later, f3 was called after calling `next`.
     });
 
   });
