@@ -1,6 +1,6 @@
 'use strict';
 
-// Helper function you can use in `middler.js`.
+// Helper function you can use in `middler.js`. See `helper.spec.js` for matching and non-matching mount and url examples.
 
 function mountMatchesUrl (mount, url) {
 
@@ -19,27 +19,3 @@ function mountMatchesUrl (mount, url) {
   }
 
 }
-
-/* -----------------Example:-----------------
-
-If the mount path is:
-
-  /users
-
-The function returns `true` for the following urls:
-
-  /users
-  /users/
-  /users?lastname=smith
-  /users/?lastname=smith
-  /users/123
-  /users/123/comments
-  /users/123/comments?approved=false
-
-However, it returns `false` for the following urls:
-
-  /user
-  /users-list
-  /api/users
-
-----------------------------------------------*/

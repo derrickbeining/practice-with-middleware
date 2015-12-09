@@ -2,7 +2,7 @@ describe('app', function(){
 
   function goToNext (req, res, next) { if (next) next(); }
 
-  var app, middleware1, middleware2, middleware3, middleware4;
+  var app, middleware1, middleware2, middleware3, middleware4, middleware5;
   beforeEach(function(){
     app = new App();
     // spies are just functions that keep track of whether they were called, what they were called with, how many times they were called, etc. These spies all call a third parameter `next`, if it is defined.
@@ -10,6 +10,7 @@ describe('app', function(){
     middleware2 = jasmine.createSpy('middleware2').and.callFake(goToNext);
     middleware3 = jasmine.createSpy('middleware3').and.callFake(goToNext);
     middleware4 = jasmine.createSpy('middleware4').and.callFake(goToNext);
+    middleware5 = jasmine.createSpy('middleware5').and.callFake(goToNext);
   });
 
   describe('.use', function(){
@@ -42,16 +43,16 @@ describe('app', function(){
       ]);
     });
 
-    describe('mounting', function(){
+    describe('custom mounting', function(){
 
-      it('registers a given middleware function with a specific mount path', function(){
+      it('registers a given middleware function for a specific mount path', function(){
         app.use('/bagels', middleware1);
         expect(app._chain).toEqual([
           { mount: '/bagels', middleware: middleware1 }
         ]);
       });
 
-      it('registers multiple middleware with specific mount paths', function(){
+      it('registers given middleware for multiple mount paths', function(){
         app.use('/cereal', middleware1);
         app.use('/cereal/cheerios', middleware2);
         app.use('/', middleware3);
@@ -60,6 +61,31 @@ describe('app', function(){
           { mount: '/cereal', middleware: middleware1 },
           { mount: '/cereal/cheerios', middleware: middleware2 },
           { mount: '/', middleware: middleware3 },
+          { mount: '/admin', middleware: middleware4 }
+        ]);
+      });
+
+      it('registers multiple middleware for a specific mount path', function(){
+        app.use('/bagels', middleware1, middleware2, middleware3);
+        expect(app._chain).toEqual([
+          { mount: '/bagels', middleware: middleware1 },
+          { mount: '/bagels', middleware: middleware2 },
+          { mount: '/bagels', middleware: middleware3 }
+        ]);
+      });
+
+      it('registers multiple middleware for multiple mount paths', function(){
+        app.use('/cereal', middleware1, middleware2, middleware4);
+        app.use('/cereal/cheerios', middleware3);
+        app.use('/', middleware2, middleware1);
+        app.use('/admin', middleware4);
+        expect(app._chain).toEqual([
+          { mount: '/cereal', middleware: middleware1 },
+          { mount: '/cereal', middleware: middleware2 },
+          { mount: '/cereal', middleware: middleware4 },
+          { mount: '/cereal/cheerios', middleware: middleware3 },
+          { mount: '/', middleware: middleware2 },
+          { mount: '/', middleware: middleware1 },
           { mount: '/admin', middleware: middleware4 }
         ]);
       });
@@ -102,8 +128,7 @@ describe('app', function(){
       expect(middleware4).toHaveBeenCalledWith(request, response, jasmine.any(Function));
     });
 
-    // NOTE: in Connect there is a lot of parsing & partial path matching, plus temporary modification of req.url, that we will not emulate.
-    it('skips middleware whose mount path does not match the request url', function(){
+    it('skips middleware whose mount path does not equal the request url', function(){
       // simulate an HTTP request for the `/puppies` URI
       request.url = '/puppies';
       // m1 on wrong mount path
@@ -115,6 +140,30 @@ describe('app', function(){
       app._handleHTTP(request, response);
       expect(middleware1).not.toHaveBeenCalled();
       expect(middleware2).toHaveBeenCalledWith(request, response, jasmine.any(Function));
+    });
+
+    // REMEMBER: we are giving you a convenient `mountMatchesUrl` function!
+    it('skips middleware whose mount path does not *match* the request url', function(){
+      // simulate an HTTP request for all the contented sounds Felix makes
+      request.url = '/kittens/felix/sounds?type=contented';
+      // m1 on various non-matching mount paths: m1 is not called
+      app.use('/kitten', middleware1);
+      app.use('/api/kittens', middleware1);
+      app.use('/puppies', middleware1);
+      app.use('/kittens/felix/siblings', middleware1);
+      app._handleHTTP(request, response);
+      expect(middleware1).not.toHaveBeenCalled();
+      // m2, 3, 4, 5 on matching mount paths: m1 – 5 all called
+      app.use('/kittens', middleware2);
+      app.use('/kittens/', middleware3);
+      app.use('/kittens/felix', middleware4);
+      app.use('/kittens/felix/sounds', middleware5);
+      app._handleHTTP(request, response);
+      expect(middleware1).not.toHaveBeenCalled();
+      expect(middleware2).toHaveBeenCalledWith(request, response, jasmine.any(Function));
+      expect(middleware3).toHaveBeenCalledWith(request, response, jasmine.any(Function));
+      expect(middleware4).toHaveBeenCalledWith(request, response, jasmine.any(Function));
+      expect(middleware5).toHaveBeenCalledWith(request, response, jasmine.any(Function));
     });
 
     it('only continues on to the next middleware when the current middleware calls `next`', function(){
