@@ -4,7 +4,7 @@
 
 [**Express.js**](http://expressjs.com/) is a popular server framework (way to more easily handle HTTP requests and reponses) for [**Node.js**](https://nodejs.org/en/) (a machine process that executes JavaScript and provides filesystem / network APIs). Express actually wraps around and extends the [**Connect**](https://github.com/senchalabs/connect) middleware system with additional methods and capabilities.
 
-Novices to these concepts often express (hah!) confusion over "middleware." **Middler** is a small [Testem](https://github.com/testem/testem)-based test spec that implements a very simple Connect-style middleware framework. It purposely omits many important features of Connect/Express, including error handling, mount path parsing, matching full urls to base baths, temporary `req.url` modification, method matching, etc. to focus solely on the idea of an asynchronous middleware chain triggered by `next` calls.
+Novices to these concepts often express (hah!) confusion over "middleware." **Middler** is a small [Testem](https://github.com/testem/testem)-based test spec that implements a very simple Connect-style middleware framework. It purposely omits many important features of Connect/Express, including error handling, temporary `req.url` modification, method matching, etc. to focus solely on the idea of an asynchronous middleware chain triggered by `next` calls.
 
 ### Instructions
 
