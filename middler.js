@@ -1,6 +1,13 @@
 'use strict';
 
-// completed constructor function for a middleware chain
+/*----------- Helper function you can use -----------*/
+
+// returns true if mount path matches beginning of url. Ignores query string and handles implicit trailing slash. Check out the `helper.js` file for more details & examples.
+
+var mountMatchesUrl = mountMatchesUrl; // a function
+
+/*--------- Main App Constructor (Completed) --------*/
+
 var App = function () {
   this._chain = [];
 };
@@ -9,16 +16,16 @@ var App = function () {
 
 // user interface (API) for registering middleware
 App.prototype.use = function() {
-  // ...define this function
+  // ▼ DEFINE THIS FUNCTION ▼
 
 };
 
 // internal method triggered by a hypothetical HTTP request
 App.prototype._handleHTTP = function(request, response) {
-  // ...define this, called once per HTTP request
+  // ▼ DEFINE THIS, CALLED ONCE PER HTTP REQUEST ▼
 
   function next(){
-    // ...and this, called for each middleware
+    // ▼ DEFINE THIS, CALLED ONCE FOR EACH MIDDLEWARE ▼
 
   };
   next(); // starts the chain
