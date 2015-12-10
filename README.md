@@ -13,10 +13,10 @@ We assume you already have working versions of Node.js and npm on your machine.
 1. Fork this repo and `git clone` your fork.
 * `cd` into the directory and `npm install`.
 * execute the `testem` command and open the URL displayed.
-* Work in `middler.js` and follow the spec in `middler.spec.js`.
+* Work in `source/middler.js` and follow the spec in `tests/middler.spec.js`.
 
 ### Notes & Hints
 
-* You are strongly encouraged to look at `helper.js` and `helper.spec.js` to understand the behavior and implementation of the `mountMatchesUrl` function. You can see the examples in action by changing `xdescribe` to `describe`.
+* You are strongly encouraged to look at `source/helper.js` and `tests/helper.spec.js` to understand the behavior and implementation of the `mountMatchesUrl` function. You can see the examples in action by changing `xdescribe` to `describe`.
 * Methods with a leading underscore (e.g. `app._handleHTTP`) are "internal" properties which are part of the underlying machinery, but are not typically meant to be directly accessed by the user/developer.
 * `_handleHTTP` can (and probably should) be implemented with no loops.
