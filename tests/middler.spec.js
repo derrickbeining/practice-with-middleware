@@ -109,105 +109,143 @@ describe('app', function(){
       };
     });
 
-    it('calls a registered middleware function with the request and response objects created by a Node.js server, plus a `next` function', function(){
-      app.use(middleware1); // mounted by default at the `/` URI
-      expect(middleware1).not.toHaveBeenCalled();
-      app._handleHTTP(request, response);
-      expect(middleware1).toHaveBeenCalledWith(request, response, jasmine.any(Function));
-    });
+    describe('core functionality', function(){
 
-    it('calls multiple registered middleware functions in order', function(){
-      var log = '';
-      function writeA (req, res, next) { log += 'A'; if (next) next(); }
-      function writeB (req, res, next) { log += 'B'; if (next) next(); }
-      function writeC (req, res, next) { log += 'C'; if (next) next(); }
-      app.use(writeA, writeB, writeC, middleware4);
-      expect(log).toBe('');
-      app._handleHTTP(request, response);
-      expect(log).toBe('ABC');
-      expect(middleware4).toHaveBeenCalledWith(request, response, jasmine.any(Function));
-    });
-
-    it('skips middleware whose mount path does not equal the request url', function(){
-      // simulate an HTTP request for the `/puppies` URI
-      request.url = '/puppies';
-      // m1 on wrong mount path
-      app.use('/kittens', middleware1);
-      app._handleHTTP(request, response);
-      expect(middleware1).not.toHaveBeenCalled();
-      // m2 on correct mount path
-      app.use('/puppies', middleware2);
-      app._handleHTTP(request, response);
-      expect(middleware1).not.toHaveBeenCalled();
-      expect(middleware2).toHaveBeenCalledWith(request, response, jasmine.any(Function));
-    });
-
-    // REMEMBER: we are giving you a convenient `mountMatchesUrl` function!
-    it('skips middleware whose mount path does not *match* the request url', function(){
-      // simulate an HTTP request for all the contented sounds Felix makes
-      request.url = '/kittens/felix/sounds?type=contented';
-      // m1 on various non-matching mount paths: m1 is not called
-      app.use('/kitten', middleware1);
-      app.use('/api/kittens', middleware1);
-      app.use('/puppies', middleware1);
-      app.use('/kittens/felix/siblings', middleware1);
-      app._handleHTTP(request, response);
-      expect(middleware1).not.toHaveBeenCalled();
-      // m2, 3, 4, 5 on matching mount paths: m1 – 5 all called
-      app.use('/kittens', middleware2);
-      app.use('/kittens/', middleware3);
-      app.use('/kittens/felix', middleware4);
-      app.use('/kittens/felix/sounds', middleware5);
-      app._handleHTTP(request, response);
-      expect(middleware1).not.toHaveBeenCalled();
-      expect(middleware2).toHaveBeenCalledWith(request, response, jasmine.any(Function));
-      expect(middleware3).toHaveBeenCalledWith(request, response, jasmine.any(Function));
-      expect(middleware4).toHaveBeenCalledWith(request, response, jasmine.any(Function));
-      expect(middleware5).toHaveBeenCalledWith(request, response, jasmine.any(Function));
-    });
-
-    it('only continues on to the next middleware when the current middleware calls `next`', function(){
-      var log = '';
-      app.use(function f1 (req, res, next){
-        log += 'called f1.';
-        next();
+      it('calls a registered middleware function with the request and response objects created by a Node.js server, plus a `next` function', function(){
+        app.use(middleware1); // mounted by default at the `/` URI
+        expect(middleware1).not.toHaveBeenCalled();
+        app._handleHTTP(request, response);
+        expect(middleware1).toHaveBeenCalledWith(request, response, jasmine.any(Function));
       });
-      app.use(function f2 (req, res, next){
-        log += ' called f2.';
-        // does not call next!
+
+      it('calls multiple registered middleware functions in order', function(){
+        var log = '';
+        function writeA (req, res, next) { log += 'A'; if (next) next(); }
+        function writeB (req, res, next) { log += 'B'; if (next) next(); }
+        function writeC (req, res, next) { log += 'C'; if (next) next(); }
+        app.use(writeA, writeB, writeC, middleware4);
+        expect(log).toBe('');
+        app._handleHTTP(request, response);
+        expect(log).toBe('ABC');
+        expect(middleware4).toHaveBeenCalledWith(request, response, jasmine.any(Function));
       });
-      app.use(function f3 (req, res, next){
-        log += ' called f3.';
-        next();
-      });
-      expect(log).toBe('');
-      app._handleHTTP(request, response);
-      expect(log).toBe('called f1. called f2.'); // never got to f3
+
     });
 
-    it('can handle async middleware by letting the `next` call asynchronously trigger the next middleware in the chain.', function(done){
-      var log = '';
-      app.use(function f1 (req, res, next){
-        log += 'called f1.';
-        next();
+    describe('mount path matching and url modification', function(){
+
+      it('skips middleware whose mount path does not equal the request url', function(){
+        // simulate an HTTP request for the `/puppies` URI
+        request.url = '/puppies';
+        // m1 on wrong mount path
+        app.use('/kittens', middleware1);
+        app._handleHTTP(request, response);
+        expect(middleware1).not.toHaveBeenCalled();
+        // m2 on correct mount path
+        app.use('/puppies', middleware2);
+        app._handleHTTP(request, response);
+        expect(middleware1).not.toHaveBeenCalled();
+        expect(middleware2).toHaveBeenCalledWith(request, response, jasmine.any(Function));
       });
-      app.use(function f2 (req, res, next){
-        log += ' called f2.';
-        setTimeout(function(){
+
+      // REMEMBER: we are giving you a convenient `mountMatchesUrl` function!
+      it('skips middleware whose mount path does not *match* the request url', function(){
+        // simulate an HTTP request for all the contented sounds Felix makes
+        request.url = '/kittens/felix/sounds?type=contented';
+        // m1 on various non-matching mount paths: m1 is not called
+        app.use('/kitten', middleware1);
+        app.use('/api/kittens', middleware1);
+        app.use('/puppies', middleware1);
+        app.use('/kittens/felix/siblings', middleware1);
+        app._handleHTTP(request, response);
+        expect(middleware1).not.toHaveBeenCalled();
+        // m2, 3, 4, 5 on matching mount paths: m1 – 5 all called
+        app.use('/kittens', middleware2);
+        app.use('/kittens/', middleware3);
+        app.use('/kittens/felix', middleware4);
+        app.use('/kittens/felix/sounds', middleware5);
+        app._handleHTTP(request, response);
+        expect(middleware1).not.toHaveBeenCalled();
+        expect(middleware2).toHaveBeenCalledWith(request, response, jasmine.any(Function));
+        expect(middleware3).toHaveBeenCalledWith(request, response, jasmine.any(Function));
+        expect(middleware4).toHaveBeenCalledWith(request, response, jasmine.any(Function));
+        expect(middleware5).toHaveBeenCalledWith(request, response, jasmine.any(Function));
+      });
+
+      // note: in reality this gets more complicated with potential trailing slashes, but we will ignore that for simplicity's sake
+      it('temporarily strips the mount path off of req.url when the mount and url match', function(){
+        var tempUrl;
+        request.url = '/kittens/felix';
+        app.use('/kittens', function(req, res, next){
+          tempUrl = req.url;
+        });
+        app._handleHTTP(request, response);
+        expect(tempUrl).toBe('/felix');
+      });
+
+      it('restores the original url after each middleware, so it can match the next mount path', function(){
+        var tempUrl1, tempUrl2;
+        request.url = '/kittens/felix';
+        app.use('/kittens', function(req, res, next){
+          tempUrl1 = req.url;
           next();
-        }, 100); // calls `next` only after 0.1 seconds
+        });
+        app.use('/kittens', function(req, res, next){
+          tempUrl2 = req.url;
+        });
+        app._handleHTTP(request, response);
+        expect(tempUrl1).toBe('/felix');
+        expect(tempUrl2).toBe('/felix');
       });
-      app.use(function f3 (req, res, next){
-        log += ' called f3.';
-        next();
+
+    });
+
+    describe('explicitly passing control', function(){
+
+      it('only continues on to the next middleware when the current middleware calls `next`', function(){
+        var log = '';
+        app.use(function f1 (req, res, next){
+          log += 'called f1.';
+          next();
+        });
+        app.use(function f2 (req, res, next){
+          log += ' called f2.';
+          // does not call next!
+        });
+        app.use(function f3 (req, res, next){
+          log += ' called f3.';
+          next();
+        });
+        expect(log).toBe('');
+        app._handleHTTP(request, response);
+        expect(log).toBe('called f1. called f2.'); // never got to f3
       });
-      expect(log).toBe('');
-      app._handleHTTP(request, response);
-      expect(log).toBe('called f1. called f2.'); // hasn't called f3 yet!
-      setTimeout(function(){
-        expect(log).toBe('called f1. called f2. called f3.');
-        done();
-      }, 200); // 0.2 seconds later, f3 was called after calling `next`.
+
+      it('can handle async middleware by letting the `next` call asynchronously trigger the next middleware in the chain.', function(done){
+        var log = '';
+        app.use(function f1 (req, res, next){
+          log += 'called f1.';
+          next();
+        });
+        app.use(function f2 (req, res, next){
+          log += ' called f2.';
+          setTimeout(function(){
+            next();
+          }, 100); // calls `next` only after 0.1 seconds
+        });
+        app.use(function f3 (req, res, next){
+          log += ' called f3.';
+          next();
+        });
+        expect(log).toBe('');
+        app._handleHTTP(request, response);
+        expect(log).toBe('called f1. called f2.'); // hasn't called f3 yet!
+        setTimeout(function(){
+          expect(log).toBe('called f1. called f2. called f3.');
+          done();
+        }, 200); // 0.2 seconds later, f3 was called after calling `next`.
+      });
+
     });
 
   });
