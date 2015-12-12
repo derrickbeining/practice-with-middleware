@@ -1,3 +1,7 @@
+'use strict';
+/* global App */
+
+// write your solution in `/source/middler.js`
 describe('app', function(){
 
   function goToNext (req, res, next) { if (next) next(); }

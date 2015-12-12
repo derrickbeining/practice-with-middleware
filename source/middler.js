@@ -27,6 +27,6 @@ App.prototype._handleHTTP = function(request, response) {
   function next(){
     // ▼ DEFINE THIS, CALLED ONCE FOR EACH MIDDLEWARE ▼
 
-  };
+  }
   next(); // starts the chain
 };

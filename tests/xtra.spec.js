@@ -1,4 +1,5 @@
 'use strict';
+/* global App queryParser */
 
 // Extra Credit! If you have a working Middler framework, let's try actually writing some middleware for it to use. Change `xdescribe` to `describe` to activate this extra challenge.
 xdescribe('middleware', function(){
@@ -20,7 +21,7 @@ xdescribe('middleware', function(){
   describe('queryParser', function(){
 
     beforeEach(function(){
-      app.use(queryParser)
+      app.use(queryParser);
     });
 
     it('is a function', function(){
@@ -47,12 +48,12 @@ xdescribe('middleware', function(){
     });
 
     it('parses a simple query string in the url, by turning a string key-value pair into an object key-value pair', function(){
-      request.url = '/kittens?color=grey'
+      request.url = '/kittens?color=grey';
       app._handleHTTP(request, response);
       expect(request.query).toEqual({
         color: 'grey'
       });
-      request.url = '/users?type=admin'
+      request.url = '/users?type=admin';
       app._handleHTTP(request, response);
       expect(request.query).toEqual({
         type: 'admin'
@@ -60,13 +61,13 @@ xdescribe('middleware', function(){
     });
 
     it('parses a more complex query string in the url, by turning a string key-value pairs into object key-value pairs', function(){
-      request.url = '/kittens?color=grey&breed=siberian'
+      request.url = '/kittens?color=grey&breed=siberian';
       app._handleHTTP(request, response);
       expect(request.query).toEqual({
         color: 'grey',
         breed: 'siberian'
       });
-      request.url = '/users?type=admin&status=active&lastname=Smith'
+      request.url = '/users?type=admin&status=active&lastname=Smith';
       app._handleHTTP(request, response);
       expect(request.query).toEqual({
         type: 'admin',
@@ -76,12 +77,12 @@ xdescribe('middleware', function(){
     });
 
     it('does some basic url-style decoding for the space character (%20)', function(){
-      request.url = '/users/?name=John%20Smith'
+      request.url = '/users/?name=John%20Smith';
       app._handleHTTP(request, response);
       expect(request.query).toEqual({
         name: 'John Smith'
       });
-      request.url = '/puppies/?color=light%20brown&breed=german%20shepherd%20dog'
+      request.url = '/puppies/?color=light%20brown&breed=german%20shepherd%20dog';
       app._handleHTTP(request, response);
       expect(request.query).toEqual({
         color: 'light brown',
@@ -95,7 +96,7 @@ xdescribe('middleware', function(){
       expect(request.query).toEqual({
         ageInWeeks: 6
       });
-      request.url = '/puppies/?paws=4&ears=2'
+      request.url = '/puppies/?paws=4&ears=2';
       app._handleHTTP(request, response);
       expect(request.query).toEqual({
         paws: 4,
@@ -104,12 +105,12 @@ xdescribe('middleware', function(){
     });
 
     it('detects boolean values', function(){
-      request.url = '/kittens/?cute=true'
+      request.url = '/kittens/?cute=true';
       app._handleHTTP(request, response);
       expect(request.query).toEqual({
         cute: true
       });
-      request.url = '/puppies/?adopted=false&name=falsey'
+      request.url = '/puppies/?adopted=false&name=falsey';
       app._handleHTTP(request, response);
       expect(request.query).toEqual({
         adopted: false,

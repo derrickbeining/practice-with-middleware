@@ -1,4 +1,5 @@
 'use strict';
+/* global mountMatchesUrl */
 
 // you can change `xdecribe` to `describe` to see these tests pass.
 xdescribe('mountMatchesUrl', function(){
@@ -19,7 +20,7 @@ xdescribe('mountMatchesUrl', function(){
       '/users/123',
       '/users/123/comments',
       '/users/123/comments?approved=false'
-    ]
+    ];
 
     matchingUrls.forEach(function(url){
       it('matches a url `' + url + '`', function(){
@@ -45,7 +46,7 @@ xdescribe('mountMatchesUrl', function(){
   describe('a request for the url `/api/kittens?color=grey`', function(){
 
     beforeEach(function(){
-      url = '/api/kittens'
+      url = '/api/kittens';
     });
 
     var matchingMounts = [

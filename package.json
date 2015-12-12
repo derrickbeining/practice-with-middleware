@@ -7,6 +7,10 @@
     "test": "testem"
   },
   "author": "Gabriel Lebec <glebec@gmail.com> (https://github.com/glebec)",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/fullstackacademy/middler.git"
+  },
   "license": "MIT",
   "dependencies": {
     "testem": "0.9.11"
