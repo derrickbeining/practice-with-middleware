@@ -18,10 +18,21 @@ xdescribe('middleware', function(){
     };
   });
 
+  // a simple example of query string parsing middleware
   describe('queryParser', function(){
 
+    var result;
     beforeEach(function(){
+      // mounting the query-parsing middleware for all incoming requests.
       app.use(queryParser);
+      // middleware that clones the `req.query` into `result`. Ensures that the `req.query` we test against is the one the next middleware actually received, not one which was possibly edited after `next` was already called.
+      app.use(function(req, res, next){
+        result = JSON.parse(JSON.stringify(req.query));
+      });
+    });
+
+    afterEach(function(){
+      result = null;
     });
 
     it('is a function', function(){
@@ -39,23 +50,19 @@ xdescribe('middleware', function(){
     });
 
     it('passes control to the next middleware so later middleware can make use of the query object', function(){
-      var queryObject;
-      app.use(function(req, res, next){
-        queryObject = req.query;
-      });
       app._handleHTTP(request, response);
-      expect(queryObject).toEqual({});
+      expect(result).toEqual({});
     });
 
     it('parses a simple query string in the url, by turning a string key-value pair into an object key-value pair', function(){
       request.url = '/kittens?color=grey';
       app._handleHTTP(request, response);
-      expect(request.query).toEqual({
+      expect(result).toEqual({
         color: 'grey'
       });
       request.url = '/users?type=admin';
       app._handleHTTP(request, response);
-      expect(request.query).toEqual({
+      expect(result).toEqual({
         type: 'admin'
       });
     });
@@ -63,13 +70,13 @@ xdescribe('middleware', function(){
     it('parses a more complex query string in the url, by turning a string key-value pairs into object key-value pairs', function(){
       request.url = '/kittens?color=grey&breed=siberian';
       app._handleHTTP(request, response);
-      expect(request.query).toEqual({
+      expect(result).toEqual({
         color: 'grey',
         breed: 'siberian'
       });
       request.url = '/users?type=admin&status=active&lastname=Smith';
       app._handleHTTP(request, response);
-      expect(request.query).toEqual({
+      expect(result).toEqual({
         type: 'admin',
         status: 'active',
         lastname: 'Smith'
@@ -79,12 +86,12 @@ xdescribe('middleware', function(){
     it('does some basic url-style decoding for the space character (%20)', function(){
       request.url = '/users/?name=John%20Smith';
       app._handleHTTP(request, response);
-      expect(request.query).toEqual({
+      expect(result).toEqual({
         name: 'John Smith'
       });
       request.url = '/puppies/?color=light%20brown&breed=german%20shepherd%20dog';
       app._handleHTTP(request, response);
-      expect(request.query).toEqual({
+      expect(result).toEqual({
         color: 'light brown',
         breed: 'german shepherd dog'
       });
@@ -93,12 +100,13 @@ xdescribe('middleware', function(){
     it('detects number values', function(){
       request.url = '/kittens?ageInWeeks=6';
       app._handleHTTP(request, response);
-      expect(request.query).toEqual({
+      expect(result).toEqual({
         ageInWeeks: 6
       });
-      request.url = '/puppies/?paws=4&ears=2';
+      request.url = '/puppies/?breed=husky&paws=4&ears=2';
       app._handleHTTP(request, response);
-      expect(request.query).toEqual({
+      expect(result).toEqual({
+        breed: 'husky',
         paws: 4,
         ears: 2
       });
@@ -107,16 +115,18 @@ xdescribe('middleware', function(){
     it('detects boolean values', function(){
       request.url = '/kittens/?cute=true';
       app._handleHTTP(request, response);
-      expect(request.query).toEqual({
+      expect(result).toEqual({
         cute: true
       });
       request.url = '/puppies/?adopted=false&name=falsey';
       app._handleHTTP(request, response);
-      expect(request.query).toEqual({
+      expect(result).toEqual({
         adopted: false,
         name: 'falsey'
       });
     });
+
+    // you can imagine we would add array and object syntax, plus potentially more robust parsing methods and capabilities.
 
   });
 
