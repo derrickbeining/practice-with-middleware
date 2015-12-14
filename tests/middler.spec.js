@@ -1,5 +1,5 @@
 'use strict';
-/* global App */
+/* global App sinon */
 
 // write your solution in `/source/middler.js`
 describe('app', function(){
