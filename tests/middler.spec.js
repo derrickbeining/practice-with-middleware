@@ -4,32 +4,56 @@
 // write your solution in `/source/middler.js`
 describe('app', function(){
 
-  function goToNext (req, res, next) { if (next) next(); }
-
-  var app, middleware1, middleware2, middleware3, middleware4, middleware5;
+  var app;
   beforeEach(function(){
     app = new App();
-    // spies are just functions that keep track of whether they were called, what they were called with, how many times they were called, etc. These spies all call a third parameter `next`, if it is defined.
-    middleware1 = jasmine.createSpy('middleware1').and.callFake(goToNext);
-    middleware2 = jasmine.createSpy('middleware2').and.callFake(goToNext);
-    middleware3 = jasmine.createSpy('middleware3').and.callFake(goToNext);
-    middleware4 = jasmine.createSpy('middleware4').and.callFake(goToNext);
-    middleware5 = jasmine.createSpy('middleware5').and.callFake(goToNext);
+  });
+
+  // our test middleware function, for which we will make spy versions
+  function goToNext (req, res, next) { if (next) next(); }
+
+  // this will let our spies have "names" for more descriptive test errors
+  var namedFuncs = {
+    middleware1: goToNext,
+    middleware2: goToNext,
+    middleware3: goToNext,
+    middleware4: goToNext,
+    middleware5: goToNext
+  };
+
+  // spies are just functions that keep track of whether they were called, what they were called with, how many times they were called, etc. These spies all call a third parameter `next`, if it is defined.
+  var middleware1 = sinon.spy(namedFuncs, 'middleware1');
+  var middleware2 = sinon.spy(namedFuncs, 'middleware2');
+  var middleware3 = sinon.spy(namedFuncs, 'middleware3');
+  var middleware4 = sinon.spy(namedFuncs, 'middleware4');
+  var middleware5 = sinon.spy(namedFuncs, 'middleware5');
+
+  // every test will begin with a blank slate (spies with no meta-information)
+  beforeEach(function(){
+    middleware1.reset();
+    middleware2.reset();
+    middleware3.reset();
+    middleware4.reset();
+    middleware5.reset();
   });
 
   describe('.use', function(){
 
     it('registers a given middleware function, mounted by default at the root', function(){
+      // register middleware
       app.use(middleware1);
+      // test app state
       expect(app._chain).toEqual([
         { mount: '/', middleware: middleware1 }
       ]);
     });
 
     it('registers multiple middleware via successive calls', function(){
+      // register middleware
       app.use(middleware1);
       app.use(middleware2);
       app.use(middleware3);
+      // test app state
       expect(app._chain).toEqual([
         { mount: '/', middleware: middleware1 },
         { mount: '/', middleware: middleware2 },
@@ -37,9 +61,11 @@ describe('app', function(){
       ]);
     });
 
+    // don't hard-code many params; user `arguments`
     it('registers multiple middleware through a single call', function(){
-      // don't hard code many params; use `arguments`
+      // register middleware
       app.use(middleware1, middleware2, middleware3);
+      // test app state
       expect(app._chain).toEqual([
         { mount: '/', middleware: middleware1 },
         { mount: '/', middleware: middleware2 },
@@ -50,17 +76,21 @@ describe('app', function(){
     describe('custom mounting', function(){
 
       it('registers a given middleware function for a specific mount path', function(){
+        // register middleware
         app.use('/bagels', middleware1);
+        // test app state
         expect(app._chain).toEqual([
           { mount: '/bagels', middleware: middleware1 }
         ]);
       });
 
       it('registers given middleware for multiple mount paths', function(){
+        // register middleware
         app.use('/cereal', middleware1);
         app.use('/cereal/cheerios', middleware2);
         app.use('/', middleware3);
         app.use('/admin', middleware4);
+        // test app state
         expect(app._chain).toEqual([
           { mount: '/cereal', middleware: middleware1 },
           { mount: '/cereal/cheerios', middleware: middleware2 },
@@ -70,7 +100,9 @@ describe('app', function(){
       });
 
       it('registers multiple middleware for a specific mount path', function(){
+        // register middleware
         app.use('/bagels', middleware1, middleware2, middleware3);
+        // test app state
         expect(app._chain).toEqual([
           { mount: '/bagels', middleware: middleware1 },
           { mount: '/bagels', middleware: middleware2 },
@@ -79,10 +111,12 @@ describe('app', function(){
       });
 
       it('registers multiple middleware for multiple mount paths', function(){
+        // register middleware
         app.use('/cereal', middleware1, middleware2, middleware4);
         app.use('/cereal/cheerios', middleware3);
         app.use('/', middleware2, middleware1);
         app.use('/admin', middleware4);
+        // test app state
         expect(app._chain).toEqual([
           { mount: '/cereal', middleware: middleware1 },
           { mount: '/cereal', middleware: middleware2 },
@@ -100,7 +134,10 @@ describe('app', function(){
 
   describe('._handleHTTP', function(){
 
-    var request, response;
+    var request, response, end = sinon.spy(function end () {
+      if (response.headersSent) throw new Error('cannot set headers after they are sent');
+      response.headersSent = true;
+    });
     beforeEach(function(){
       request = {
         method: 'GET',
@@ -109,15 +146,18 @@ describe('app', function(){
       response = {
         statusCode: undefined,
         headersSent: false,
-        end: function(){}
+        end: end
       };
+      end.reset();
     });
 
     describe('core functionality', function(){
 
       it('calls a registered middleware function with the request and response objects created by a Node.js server, plus a `next` function', function(){
+        // register middleware
         app.use(middleware1); // mounted by default at the `/` URI
         expect(middleware1).not.toHaveBeenCalled();
+        // simulate http event
         app._handleHTTP(request, response);
         expect(middleware1).toHaveBeenCalledWith(request, response, jasmine.any(Function));
       });
@@ -127,8 +167,10 @@ describe('app', function(){
         function writeA (req, res, next) { log += 'A'; if (next) next(); }
         function writeB (req, res, next) { log += 'B'; if (next) next(); }
         function writeC (req, res, next) { log += 'C'; if (next) next(); }
+        // register middleware
         app.use(writeA, writeB, writeC, middleware4);
         expect(log).toBe('');
+        // simulate http event
         app._handleHTTP(request, response);
         expect(log).toBe('ABC');
         expect(middleware4).toHaveBeenCalledWith(request, response, jasmine.any(Function));
@@ -177,7 +219,7 @@ describe('app', function(){
       });
 
       // note: in reality this gets more complicated with potential trailing slashes, but we will ignore that for simplicity's sake
-      it('temporarily strips the mount path off of req.url when the mount and url match', function(){
+      it('temporarily strips the mount off of req.url when the mount and url match', function(){
         var tempUrl;
         request.url = '/kittens/felix';
         app.use('/kittens', function(req, res, next){
@@ -196,10 +238,12 @@ describe('app', function(){
         });
         app.use('/kittens', function(req, res, next){
           tempUrl2 = req.url;
+          next();
         });
         app._handleHTTP(request, response);
         expect(tempUrl1).toBe('/felix');
         expect(tempUrl2).toBe('/felix');
+        expect(request.url).toBe('/kittens/felix');
       });
 
     });
@@ -248,6 +292,173 @@ describe('app', function(){
           expect(log).toBe('called f1. called f2. called f3.');
           done();
         }, 200); // 0.2 seconds later, f3 was called after calling `next`.
+      });
+
+    });
+
+    // NOTE: at this point, you can proceed to the bonus specs in `/test/xtra.spec.js` if you want to try actually writing an example middleware function. The following error-handling section is good to understand for Express but is not required for the bonus specs.
+    describe('error handling', function(){
+
+      // our test error-handling middleware has arity 4 (4 named parameters) and calls `next` with the existing error in order to continue on to the next available error-handling middleware.
+      function nextErr (err, req, res, next) { if (next) next(err); }
+      namedFuncs.errMiddleware1 = nextErr;
+      namedFuncs.errMiddleware2 = nextErr;
+      var errMiddleware1 = sinon.spy(namedFuncs, 'errMiddleware1');
+      var errMiddleware2 = sinon.spy(namedFuncs, 'errMiddleware2');
+
+      beforeEach(function(){
+        errMiddleware1.reset();
+        errMiddleware2.reset();
+      });
+
+      it('does not execute middleware with arity 4 (i.e. middleware with 4 named parameters) if there is no error', function(){
+        app.use(errMiddleware1);
+        app._handleHTTP(request, response);
+        expect(errMiddleware1).not.toHaveBeenCalled();
+      });
+
+      it('*skips* error-handling middleware (arity 4) if there is no error, by moving on to the next normal middleware (arity 3)', function(){
+        // middleware registration
+        app.use(middleware1);
+        app.use(errMiddleware1);
+        app.use(errMiddleware2);
+        app.use(middleware2);
+        // simulate HTTP event
+        app._handleHTTP(request, response);
+        // test what happened to the spies
+        expect(middleware1).toHaveBeenCalled();
+        expect(errMiddleware1).not.toHaveBeenCalled();
+        expect(errMiddleware2).not.toHaveBeenCalled();
+        expect(middleware2).toHaveBeenCalled();
+      });
+
+      describe('explicit triggering', function(){
+
+        it('executes error middleware if a truthy value is passed to the `next` function', function(){
+          // objects are one example of a truthy value
+          var errObj = new Error('example error object');
+          // middleware registration
+          app.use(middleware1);
+          app.use(function triggersError (req, res, next){
+            next(errObj); // deliberate error triggering
+          });
+          app.use(errMiddleware1);
+          // simulate HTTP event
+          app._handleHTTP(request, response);
+          // test what happened to the spies
+          expect(middleware1).toHaveBeenCalled();
+          expect(errMiddleware1).toHaveBeenCalledWith(errObj, request, response, jasmine.any(Function));
+        });
+
+        it('skips normal middleware if there is an error, until it reaches the next error-handling middleware', function(){
+          var errObj = new Error('example error object');
+          // middleware registration
+          app.use(middleware1);
+          app.use(function triggersError (req, res, next){
+            next(errObj); // deliberate error triggering
+          });
+          app.use(middleware2);
+          app.use(middleware3);
+          app.use(errMiddleware1);
+          // simulate HTTP event
+          app._handleHTTP(request, response);
+          // test what happened to the spies
+          expect(middleware1).toHaveBeenCalled();
+          expect(middleware2).not.toHaveBeenCalled();
+          expect(middleware3).not.toHaveBeenCalled();
+          expect(errMiddleware1).toHaveBeenCalledWith(errObj, request, response, jasmine.any(Function));
+        });
+
+        // the devil is in the details… lots of combinations to check!
+        it('skips normal middleware even following middleware with the wrong mount if there is an error, until it reaches the next error-handling middleware', function(){
+          var errObj = new Error('example error object');
+          // middleware registration
+          app.use(function triggersError (req, res, next){
+            next(errObj); // deliberate error triggering
+          });
+          app.use('/kittens', middleware1);
+          app.use(middleware2);
+          app.use(errMiddleware1);
+          // simulate HTTP event
+          app._handleHTTP(request, response);
+          // test what happened to the spies
+          expect(middleware1).not.toHaveBeenCalled();
+          expect(middleware2).not.toHaveBeenCalled();
+          expect(errMiddleware1).toHaveBeenCalledWith(errObj, request, response, jasmine.any(Function));
+        });
+
+      });
+
+      describe('thrown error', function(){
+
+        // hint: you will have to use the try-catch syntax for these
+
+        it('activates error-handling middleware if normal middleware throws an error', function(){
+          var errObj = new Error('you did not catch me!');
+          // middleware registration
+          app.use(function throwsError (req, res, next){
+            throw errObj;
+          });
+          app.use(middleware1);
+          app.use(errMiddleware1);
+          // simulate HTTP event
+          app._handleHTTP(request, response);
+          // test what happened to the spies
+          expect(middleware1).not.toHaveBeenCalled();
+          expect(errMiddleware1).toHaveBeenCalledWith(errObj, request, response, jasmine.any(Function));
+        });
+
+        // this may pass on its own, depending on your solution.
+        it('activates error-handling middleware if error-handling middleware throws an error', function(){
+          var errObj = new Error('you did not catch me!');
+          // middleware registration
+          app.use(function normalTriggersError (req, res, next){
+            next(true); // deliberately triggers error-handling middleware
+          });
+          app.use(middleware1);
+          app.use(function errorThrowsError (err, req, res, next){
+            var weWouldHandleThisSomehow = err;
+            throw errObj; // should trigger next error-handling middleware
+          });
+          app.use(middleware2);
+          app.use(errMiddleware1);
+          // simulate HTTP event
+          app._handleHTTP(request, response);
+          // test what happened to the spies
+          expect(middleware1).not.toHaveBeenCalled();
+          expect(middleware2).not.toHaveBeenCalled();
+          expect(errMiddleware1).toHaveBeenCalledWith(errObj, request, response, jasmine.any(Function));
+        });
+
+      });
+
+      describe('default error handling', function(){
+
+        it('does not modify the request if there is no unhandled error', function(){
+          app.use(middleware1);
+          app._handleHTTP(request, response);
+          expect(end).not.toHaveBeenCalled();
+          expect(response).toEqual({
+            statusCode: undefined,
+            headersSent: false,
+            end: end
+          });
+        });
+
+        it('sets status to 500 and calls res.end with an unhandled error if there is one', function(){
+          var errObj = new Error('unhandled error');
+          app.use(function throwsErr (req, res, next){
+            throw errObj;
+          });
+          app._handleHTTP(request, response);
+          expect(end).toHaveBeenCalledWithExactly(errObj);
+          expect(response).toEqual({
+            statusCode: 500, // you will have to set this yourself
+            headersSent: true, // set for you by calling the `end` function
+            end: end
+          });
+        });
+
       });
 
     });
