@@ -1,12 +1,12 @@
 'use strict';
-/* global App sinon */
+/* global Middler sinon */
 
 // write your solution in `/source/middler.js`
 describe('app', function(){
 
   var app;
   beforeEach(function(){
-    app = new App();
+    app = Middler();
   });
 
   // our test middleware function, for which we will make spy versions

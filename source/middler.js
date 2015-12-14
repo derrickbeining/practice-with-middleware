@@ -6,10 +6,14 @@
 
 var mountMatchesUrl = mountMatchesUrl; // a function
 
-/*--------- Main App Constructor (Completed) --------*/
+/*--------- Main App Constructor and Factory --------*/
 
 var App = function () {
   this._chain = [];
+};
+
+var Middler = function(){
+  return new App();
 };
 
 /*======== Follow the spec in middler.spec.js ========*/

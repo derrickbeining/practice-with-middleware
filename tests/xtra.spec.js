@@ -1,12 +1,12 @@
 'use strict';
-/* global App queryParser */
+/* global Middler queryParser */
 
 // Extra Credit! If you have a working Middler framework, let's try actually writing some middleware for it to use. Change `xdescribe` to `describe` to activate this extra challenge.
 xdescribe('middleware', function(){
 
   var app, request, response;
   beforeEach(function(){
-    app = new App();
+    app = Middler();
     request = {
       method: 'GET',
       url: '/'
