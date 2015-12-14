@@ -13,6 +13,6 @@
   },
   "license": "MIT",
   "dependencies": {
-    "testem": "0.9.11"
+    "testem": "0.7.6"
   }
 }
