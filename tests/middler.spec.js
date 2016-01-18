@@ -61,7 +61,7 @@ describe('app', function(){
       ]);
     });
 
-    // don't hard-code many params; user `arguments`
+    // don't hard-code many params; use `arguments`
     it('registers multiple middleware through a single call', function(){
       // register middleware
       app.use(middleware1, middleware2, middleware3);
@@ -159,7 +159,7 @@ describe('app', function(){
         expect(middleware1).not.toHaveBeenCalled();
         // simulate http event
         app._handleHTTP(request, response);
-        expect(middleware1).toHaveBeenCalledWith(request, response, jasmine.any(Function));
+        expect(middleware1).toHaveBeenCalledWith(request, response, sinon.match.func);
       });
 
       it('calls multiple registered middleware functions in order', function(){
@@ -173,7 +173,7 @@ describe('app', function(){
         // simulate http event
         app._handleHTTP(request, response);
         expect(log).toBe('ABC');
-        expect(middleware4).toHaveBeenCalledWith(request, response, jasmine.any(Function));
+        expect(middleware4).toHaveBeenCalledWith(request, response, sinon.match.func);
       });
 
     });
@@ -191,7 +191,7 @@ describe('app', function(){
         app.use('/puppies', middleware2);
         app._handleHTTP(request, response);
         expect(middleware1).not.toHaveBeenCalled();
-        expect(middleware2).toHaveBeenCalledWith(request, response, jasmine.any(Function));
+        expect(middleware2).toHaveBeenCalledWith(request, response, sinon.match.func);
       });
 
       // REMEMBER: we are giving you a convenient `mountMatchesUrl` function!
@@ -212,10 +212,10 @@ describe('app', function(){
         app.use('/kittens/felix/sounds', middleware5);
         app._handleHTTP(request, response);
         expect(middleware1).not.toHaveBeenCalled();
-        expect(middleware2).toHaveBeenCalledWith(request, response, jasmine.any(Function));
-        expect(middleware3).toHaveBeenCalledWith(request, response, jasmine.any(Function));
-        expect(middleware4).toHaveBeenCalledWith(request, response, jasmine.any(Function));
-        expect(middleware5).toHaveBeenCalledWith(request, response, jasmine.any(Function));
+        expect(middleware2).toHaveBeenCalledWith(request, response, sinon.match.func);
+        expect(middleware3).toHaveBeenCalledWith(request, response, sinon.match.func);
+        expect(middleware4).toHaveBeenCalledWith(request, response, sinon.match.func);
+        expect(middleware5).toHaveBeenCalledWith(request, response, sinon.match.func);
       });
 
       // note: in reality this gets more complicated with potential trailing slashes, but we will ignore that for simplicity's sake
@@ -335,7 +335,7 @@ describe('app', function(){
       describe('explicit triggering', function(){
 
         it('executes error middleware if a truthy value is passed to the `next` function', function(){
-          // objects are one example of a truthy value
+          // error instances (objects) are one example of a truthy value
           var errObj = new Error('example error object');
           // middleware registration
           app.use(middleware1);
@@ -347,7 +347,7 @@ describe('app', function(){
           app._handleHTTP(request, response);
           // test what happened to the spies
           expect(middleware1).toHaveBeenCalled();
-          expect(errMiddleware1).toHaveBeenCalledWith(errObj, request, response, jasmine.any(Function));
+          expect(errMiddleware1).toHaveBeenCalledWith(errObj, request, response, sinon.match.func);
         });
 
         it('skips normal middleware if there is an error, until it reaches the next error-handling middleware', function(){
@@ -366,7 +366,7 @@ describe('app', function(){
           expect(middleware1).toHaveBeenCalled();
           expect(middleware2).not.toHaveBeenCalled();
           expect(middleware3).not.toHaveBeenCalled();
-          expect(errMiddleware1).toHaveBeenCalledWith(errObj, request, response, jasmine.any(Function));
+          expect(errMiddleware1).toHaveBeenCalledWith(errObj, request, response, sinon.match.func);
         });
 
         // the devil is in the details… lots of combinations to check!
@@ -384,7 +384,7 @@ describe('app', function(){
           // test what happened to the spies
           expect(middleware1).not.toHaveBeenCalled();
           expect(middleware2).not.toHaveBeenCalled();
-          expect(errMiddleware1).toHaveBeenCalledWith(errObj, request, response, jasmine.any(Function));
+          expect(errMiddleware1).toHaveBeenCalledWith(errObj, request, response, sinon.match.func);
         });
 
       });
@@ -394,7 +394,7 @@ describe('app', function(){
         // hint: you will have to use the try-catch syntax for these
 
         it('activates error-handling middleware if normal middleware throws an error', function(){
-          var errObj = new Error('you did not catch me!');
+          var errObj = new Error('catch me if you can!');
           // middleware registration
           app.use(function throwsError (req, res, next){
             throw errObj;
@@ -405,12 +405,12 @@ describe('app', function(){
           app._handleHTTP(request, response);
           // test what happened to the spies
           expect(middleware1).not.toHaveBeenCalled();
-          expect(errMiddleware1).toHaveBeenCalledWith(errObj, request, response, jasmine.any(Function));
+          expect(errMiddleware1).toHaveBeenCalledWith(errObj, request, response, sinon.match.func);
         });
 
         // this may pass on its own, depending on your solution.
         it('activates error-handling middleware if error-handling middleware throws an error', function(){
-          var errObj = new Error('you did not catch me!');
+          var errObj = new Error('catch me if you can!');
           // middleware registration
           app.use(function normalTriggersError (req, res, next){
             next(true); // deliberately triggers error-handling middleware
@@ -427,14 +427,14 @@ describe('app', function(){
           // test what happened to the spies
           expect(middleware1).not.toHaveBeenCalled();
           expect(middleware2).not.toHaveBeenCalled();
-          expect(errMiddleware1).toHaveBeenCalledWith(errObj, request, response, jasmine.any(Function));
+          expect(errMiddleware1).toHaveBeenCalledWith(errObj, request, response, sinon.match.func);
         });
 
       });
 
       describe('default error handling', function(){
 
-        it('does not modify the request if there is no unhandled error', function(){
+        it('does not modify the response if there is no unhandled error', function(){
           app.use(middleware1);
           app._handleHTTP(request, response);
           expect(end).not.toHaveBeenCalled();
