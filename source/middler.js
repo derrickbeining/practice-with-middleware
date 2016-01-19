@@ -4,7 +4,7 @@
 
 // returns true if mount path matches beginning of url. Ignores query string and handles implicit trailing slash. Check out the `helper.js` file for more details & examples.
 
-var mountMatchesUrl = mountMatchesUrl; // a function
+mountMatchesUrl; // a function defined in `helper.js`
 
 /*--------- Main App Constructor and Factory --------*/
 
