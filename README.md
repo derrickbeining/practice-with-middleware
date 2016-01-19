@@ -12,7 +12,7 @@ We assume you already have working versions of Node.js and npm on your machine.
 
 1. Fork this repo and `git clone` your fork.
 * `cd` into the directory and `npm install && bower install`.
-* execute the `testem` command and open the URL displayed.
+* execute the `npm test` command and open the URL displayed.
 * Work in `source/middler.js` and follow the spec in `tests/middler.spec.js`.
 * If you complete Middler, try the bonus spec in `tests/xtra.spec.js`.
 
