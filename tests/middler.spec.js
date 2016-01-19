@@ -159,6 +159,7 @@ describe('app', function(){
         expect(middleware1).not.toHaveBeenCalled();
         // simulate http event
         app._handleHTTP(request, response);
+        // sinon.match.func is a test tool that matches any function
         expect(middleware1).toHaveBeenCalledWith(request, response, sinon.match.func);
       });
 
