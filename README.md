@@ -8,7 +8,7 @@ Novices to these concepts often express (hah!) confusion over "middleware." **Mi
 
 ### Instructions
 
-We assume you already have working versions of Node.js and npm on your machine.
+We assume you already have working versions of [Node.js, npm](https://nodejs.org/en/), and [Bower](http://bower.io/#install-bower) on your machine.
 
 1. Fork this repo and `git clone` your fork.
 * `cd` into the directory and `npm install && bower install`.
