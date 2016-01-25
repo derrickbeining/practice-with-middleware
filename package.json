@@ -4,7 +4,8 @@
   "description": "a simple spec explaining a middleware system",
   "main": "middler.js",
   "scripts": {
-    "test": "testem"
+    "test": "testem",
+    "postinstall": "bower install"
   },
   "author": "Gabriel Lebec <glebec@gmail.com> (https://github.com/glebec)",
   "repository": {
