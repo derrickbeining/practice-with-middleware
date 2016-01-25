@@ -5,7 +5,7 @@
   "main": "middler.js",
   "scripts": {
     "test": "testem",
-    "postinstall": "bower install"
+    "preinstall": "bower install"
   },
   "author": "Gabriel Lebec <glebec@gmail.com> (https://github.com/glebec)",
   "repository": {
