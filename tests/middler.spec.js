@@ -232,19 +232,19 @@ describe('app', function(){
 
       it('restores the original url after each middleware, so it can match the next mount path', function(){
         var tempUrl1, tempUrl2;
-        request.url = '/kittens/felix';
+        request.url = '/kittens/felix/friends';
         app.use('/kittens', function(req, res, next){
           tempUrl1 = req.url;
           next();
         });
-        app.use('/kittens', function(req, res, next){
+        app.use('/kittens/felix', function(req, res, next){
           tempUrl2 = req.url;
           next();
         });
         app._handleHTTP(request, response);
-        expect(tempUrl1).toBe('/felix');
-        expect(tempUrl2).toBe('/felix');
-        expect(request.url).toBe('/kittens/felix');
+        expect(tempUrl1).toBe('/felix/friends');
+        expect(tempUrl2).toBe('/friends');
+        expect(request.url).toBe('/kittens/felix/friends');
       });
 
     });
