@@ -21,3 +21,7 @@ We assume you already have working versions of [Node.js, npm](https://nodejs.org
 * You are strongly encouraged to look at `source/helper.js` and `tests/helper.spec.js` to understand the behavior and implementation of the `mountMatchesUrl` function. You can see the examples in action by changing `xdescribe` to `describe`.
 * It is common practice that methods with a leading underscore (e.g. `app._handleHTTP`) are "internal" properties which are part of the underlying machinery, but are not typically meant to be directly accessed by the user/developer.
 * `_handleHTTP` can (and probably should) be implemented with no loops.
+
+### Post-Reading
+
+After attempting Middler, you are highly encouraged to read the Netflix blog post [Node.js in Flames](http://techblog.netflix.com/2014/11/nodejs-in-flames.html). Your newfound perspective on Express's internal workings will help you appreciate the technical points which led to Netflix experiencing gradually worsening latency — in addition to underscoring the importance of selecting the right data structure for your use case.
