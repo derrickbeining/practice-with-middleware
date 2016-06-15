@@ -20,7 +20,7 @@ We assume you already have working versions of [Node.js, npm](https://nodejs.org
 
 * You are strongly encouraged to look at `source/helper.js` and `tests/helper.spec.js` to understand the behavior and implementation of the `mountMatchesUrl` function. You can see the examples in action by changing `xdescribe` to `describe`.
 * It is common practice that methods with a leading underscore (e.g. `app._handleHTTP`) are "internal" properties which are part of the underlying machinery, but are not typically meant to be directly accessed by the user/developer.
-* `_handleHTTP` can (and probably should) be implemented with no loops.
+* `_handleHTTP` can be implemented with no loops, though that is not necessary.
 
 ### Post-Reading
 
