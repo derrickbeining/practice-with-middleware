@@ -4,8 +4,8 @@
 
 function mountMatchesUrl (mount, url) {
 
-  mount = ensureSlash(mount);
-  url = ensureSlash(removeQuery(url));
+  mount = ensureTrailingSlash(mount);
+  url = ensureTrailingSlash(removeQuery(url));
   return mount === url.slice(0, mount.length);
 
   function removeQuery (path) {
@@ -13,7 +13,7 @@ function mountMatchesUrl (mount, url) {
         hasQuery = Boolean(queryPosition + 1);
     return hasQuery ? path.slice(0, queryPosition) : path;
   }
-  function ensureSlash (path) {
+  function ensureTrailingSlash (path) {
     var last = path.length - 1;
     return (path[last] !== '/') ? path + '/' : path;
   }

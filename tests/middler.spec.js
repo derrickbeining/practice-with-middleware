@@ -1,5 +1,6 @@
 'use strict';
 /* global Middler sinon */
+/* eslint-disable callback-return, new-cap, max-statements-per-line */
 
 // write your solution in `/source/middler.js`
 describe('app', function(){
@@ -220,14 +221,64 @@ describe('app', function(){
       });
 
       // note: in reality this gets more complicated with potential trailing slashes, but we will ignore that for simplicity's sake
-      it('temporarily strips the mount off of req.url when the mount and url match', function(){
-        var tempUrl;
-        request.url = '/kittens/felix';
-        app.use('/kittens', function(req, res, next){
-          tempUrl = req.url;
-        });
-        app._handleHTTP(request, response);
-        expect(tempUrl).toBe('/felix');
+      it('temporarily strips the mount off of req.url when the mount and url match', function() {
+
+        /**
+         * You might imagine that if I made a request to http://localhost/kittens/felix
+         * that the `req.url` property would be http://localhost/kittens/felix. If not that
+         * you could imagine it would be /kittens/felix. This is not necessarily the case.
+         * In express, `req.url` has _perspective_.
+         */
+
+        /**
+         * If we make a request to `/` and we have middleware mounted at `/`, the `req.url`
+         * will be `/`. No surprises there.
+         */
+        var reqUrl = getReqUrlFromPerspectiveOfMiddleware('/', '/');
+        expect(reqUrl).toBe('/');
+
+        /**
+         * If we make a request to `/kittens/felix` and we have middleware mounted at `/`
+         * the `req.url` will be `/kittens/felix`. Also no big surprises!
+         */
+        reqUrl = getReqUrlFromPerspectiveOfMiddleware('/', '/kittens/felix');
+        expect(reqUrl).toBe('/kittens/felix');
+
+        /**
+         * If we have middleware mounted at `/kittens` (meaning we only want it to fire
+         * if the client's requet's URL begins with `/kittens`), and we make a request to
+         * `/kittens/felix`, the middleware will fire. But! the `req.url` will be `/felix`
+         * and *not* `/kittens/felix`. Another way to look at this is that the
+         *
+         *     `req.url` = request's path - middleware mounting path
+         *
+         */
+        reqUrl = getReqUrlFromPerspectiveOfMiddleware('/kittens', '/kittens/felix');
+        expect(reqUrl).toBe('/felix');
+
+        /** One more example */
+        reqUrl = getReqUrlFromPerspectiveOfMiddleware('/puppies/rover', '/puppies/rover/bone');
+        expect(reqUrl).toBe('/bone');
+
+        /**
+         * mounts middleware on the app, makes a request, records the `req.url` from the perspective
+         * of that middleware.
+         * @param  {String} middlewarePath       this is the path that goes into app.use()
+         * @param  {String} requestUrl           URL requested from the client
+         * @return {String}                      the `req.url` as observed inside the middleware callback
+         */
+        function getReqUrlFromPerspectiveOfMiddleware(middlewarePath, requestUrl) {
+          request.url = requestUrl;
+          var tempUrl;
+          app.use(middlewarePath, function(req) {
+            tempUrl = req.url;
+          });
+          app._handleHTTP(request, response);
+          // prevents side effects
+          app._chain.pop();
+          return tempUrl;
+        }
+
       });
 
       it('restores the original url after each middleware, so it can match the next mount path', function(){
@@ -318,7 +369,7 @@ describe('app', function(){
         expect(errMiddleware1).not.toHaveBeenCalled();
       });
 
-      it('*skips* error-handling middleware (arity 4) if there is no error, by moving on to the next normal middleware (arity 3)', function(){
+      it('*skips* error-handling middleware (arity 4) if there is no error, by moving on to the next normal middleware (arity 3 or less)', function(){
         // middleware registration
         app.use(middleware1);
         app.use(errMiddleware1);
@@ -418,7 +469,8 @@ describe('app', function(){
           });
           app.use(middleware1);
           app.use(function errorThrowsError (err, req, res, next){
-            var weWouldHandleThisSomehow = err;
+            function hypotheticalErrorPageRenderer () {}
+            hypotheticalErrorPageRenderer(err);
             throw errObj; // should trigger next error-handling middleware
           });
           app.use(middleware2);

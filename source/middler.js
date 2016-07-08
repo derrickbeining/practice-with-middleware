@@ -1,10 +1,13 @@
 'use strict';
+/* global mountMatchesUrl */
 
 /*----------- Helper function you can use -----------*/
 
-// returns true if mount path matches beginning of url. Ignores query string and handles implicit trailing slash. Check out the `helper.js` file for more details & examples.
+// `mountMatchesUrl` is a function defined in `helper.js`, accessible here.
 
-mountMatchesUrl; // a function defined in `helper.js`
+// It returns true if mount path matches beginning of url.
+// Properly ignores query string and handles implicit trailing slash.
+// Check out the `helper.js` file for more details & examples.
 
 /*--------- Main App Constructor and Factory --------*/
 
