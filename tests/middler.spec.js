@@ -512,6 +512,22 @@ describe('app', function(){
           });
         });
 
+        it('honors the `.status` property of a passed-in error', function(){
+          var status = [401, 403, 404, 409][Math.floor(Math.random() * 4)];
+          var errObj = new Error('unhandled error');
+          errObj.status = status; // your code will have to detect this
+          app.use(function throwsErr (req, res, next){
+            throw errObj;
+          });
+          app._handleHTTP(request, response);
+          expect(end).toHaveBeenCalledWithExactly(errObj);
+          expect(response).toEqual({
+            statusCode: status, // this is what we are testing
+            headersSent: true,
+            end: end
+          });
+        });
+
       });
 
     });
