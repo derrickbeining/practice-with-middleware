@@ -10,23 +10,24 @@ describe('app', function(){
     app = Middler();
   });
 
-  // our test middleware function, for which we will make spy versions
+  // our test middleware function, for which we will make spy versions. It always calls `next` if defined.
   function goToNext (req, res, next) { if (next) next(); }
+
+  // spies are just functions that keep track of whether they were called, what they were called with, how many times they were called, etc. These spies wrap the `goToNext` middleware function.
+  function makeMiddlewareSpy (num) {
+    return jasmine
+    .createSpy('middleware' + num, goToNext)
+    .and.callFake(goToNext);
+  }
 
   // every test will begin with a blank slate (spies with no meta-information)
   var middleware1, middleware2, middleware3, middleware4, middleware5;
   beforeEach(function(){
-    // spies are just functions that keep track of whether they were called, what they were called with, how many times they were called, etc. These spies all call a third parameter `next`, if it is defined.
-    middleware1 = jasmine.createSpy('middleware1', goToNext)
-      .and.callFake(goToNext);
-    middleware2 = jasmine.createSpy('middleware2', goToNext)
-      .and.callFake(goToNext);
-    middleware3 = jasmine.createSpy('middleware3', goToNext)
-      .and.callFake(goToNext);
-    middleware4 = jasmine.createSpy('middleware4', goToNext)
-      .and.callFake(goToNext);
-    middleware5 = jasmine.createSpy('middleware5', goToNext)
-      .and.callFake(goToNext);
+    middleware1 = makeMiddlewareSpy(1);
+    middleware2 = makeMiddlewareSpy(2);
+    middleware3 = makeMiddlewareSpy(3);
+    middleware4 = makeMiddlewareSpy(4);
+    middleware5 = makeMiddlewareSpy(5);
   });
 
   describe('.use', function(){
