@@ -141,7 +141,7 @@ describe('app', function(){
     });
 
     function endFn () {
-      if (response.headersSent) throw new Error('cannot set headers after they are sent');
+      if (response.headersSent) throw new Error('cannot set headers after they are sent\n(this is Express\'s way of saying you tried to respond to a given request more than once)');
       response.headersSent = true;
     }
 
@@ -486,6 +486,7 @@ describe('app', function(){
         app.use(function (req, res, next) {
           res.statusCode = randomStatus;
           res.end();
+          next();
         });
         expect(end).not.toHaveBeenCalled();
         app._handleHTTP(request, response);
