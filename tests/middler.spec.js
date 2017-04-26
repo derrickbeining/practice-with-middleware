@@ -477,18 +477,58 @@ describe('app', function(){
 
       });
 
-      describe('default error handling', function(){
+    });
 
-        it('does not modify the response if there is no unhandled error', function(){
-          app.use(middleware1);
-          app._handleHTTP(request, response);
+    describe('final handler', function(){
+
+      it('does not modify the response if it was already sent', function(){
+        var randomStatus = Math.floor(Math.random() * 100 + 200);
+        app.use(function (req, res, next) {
+          res.statusCode = randomStatus;
+          res.end();
+        });
+        expect(end).not.toHaveBeenCalled();
+        app._handleHTTP(request, response);
+        expect(end).toHaveBeenCalled();
+        expect(response).toEqual({
+          statusCode: randomStatus,
+          headersSent: true,
+          end: end
+        });
+      });
+
+      describe('default missing route handling', function(){
+
+        it('sets the status to 404 and calls res.end if there are no routes', function(){
           expect(end).not.toHaveBeenCalled();
+          app._handleHTTP(request, response);
+          expect(end).toHaveBeenCalled();
           expect(response).toEqual({
-            statusCode: undefined,
-            headersSent: false,
+            statusCode: 404,
+            headersSent: true,
             end: end
           });
         });
+
+        it('sets the status to 404 and calls res.end if no route sent a response', function(){
+          app.use(middleware1);
+          app.use('/foo', middleware2);
+          app.use(middleware3);
+          app.use('/bar', middleware4);
+          app.use(middleware5)
+          expect(end).not.toHaveBeenCalled();
+          app._handleHTTP(request, response);
+          expect(end).toHaveBeenCalled();
+          expect(response).toEqual({
+            statusCode: 404,
+            headersSent: true,
+            end: end
+          });
+        });
+
+      });
+
+      describe('default error handling', function(){
 
         it('sets status to 500 and calls res.end with an unhandled error if there is one', function(){
           var errObj = new Error('unhandled error');
@@ -504,7 +544,7 @@ describe('app', function(){
           });
         });
 
-        it('honors the `.status` property of a passed-in error', function(){
+        it('honors the `.status` property of an error', function(){
           var status = [401, 403, 404, 409][Math.floor(Math.random() * 4)];
           var errObj = new Error('unhandled error');
           errObj.status = status; // your code will have to detect this
