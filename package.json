@@ -2,10 +2,8 @@
   "name": "middler",
   "version": "1.0.0",
   "description": "a simple spec explaining a middleware system",
-  "main": "middler.js",
   "scripts": {
-    "test": "testem",
-    "preinstall": "bower install"
+    "test": "gulp"
   },
   "author": "Gabriel Lebec <glebec@gmail.com> (https://github.com/glebec)",
   "repository": {
@@ -13,7 +11,9 @@
     "url": "git://github.com/fullstackacademy/middler.git"
   },
   "license": "MIT",
-  "dependencies": {
-    "testem": "0.7.6"
+  "devDependencies": {
+    "gulp": "^3.9.1",
+    "gulp-jasmine-livereload-task": "^0.11.0",
+    "jasmine-core": "^2.6.0"
   }
 }

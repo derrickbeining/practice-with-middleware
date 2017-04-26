@@ -1,5 +1,5 @@
 'use strict';
-/* global Middler sinon */
+/* global Middler */
 /* eslint-disable callback-return, new-cap, max-statements-per-line */
 
 // write your solution in `/source/middler.js`
@@ -13,29 +13,20 @@ describe('app', function(){
   // our test middleware function, for which we will make spy versions
   function goToNext (req, res, next) { if (next) next(); }
 
-  // this will let our spies have "names" for more descriptive test errors
-  var namedFuncs = {
-    middleware1: goToNext,
-    middleware2: goToNext,
-    middleware3: goToNext,
-    middleware4: goToNext,
-    middleware5: goToNext
-  };
-
-  // spies are just functions that keep track of whether they were called, what they were called with, how many times they were called, etc. These spies all call a third parameter `next`, if it is defined.
-  var middleware1 = sinon.spy(namedFuncs, 'middleware1');
-  var middleware2 = sinon.spy(namedFuncs, 'middleware2');
-  var middleware3 = sinon.spy(namedFuncs, 'middleware3');
-  var middleware4 = sinon.spy(namedFuncs, 'middleware4');
-  var middleware5 = sinon.spy(namedFuncs, 'middleware5');
-
   // every test will begin with a blank slate (spies with no meta-information)
+  var middleware1, middleware2, middleware3, middleware4, middleware5;
   beforeEach(function(){
-    middleware1.reset();
-    middleware2.reset();
-    middleware3.reset();
-    middleware4.reset();
-    middleware5.reset();
+    // spies are just functions that keep track of whether they were called, what they were called with, how many times they were called, etc. These spies all call a third parameter `next`, if it is defined.
+    middleware1 = jasmine.createSpy('middleware1', goToNext)
+      .and.callFake(goToNext);
+    middleware2 = jasmine.createSpy('middleware2', goToNext)
+      .and.callFake(goToNext);
+    middleware3 = jasmine.createSpy('middleware3', goToNext)
+      .and.callFake(goToNext);
+    middleware4 = jasmine.createSpy('middleware4', goToNext)
+      .and.callFake(goToNext);
+    middleware5 = jasmine.createSpy('middleware5', goToNext)
+      .and.callFake(goToNext);
   });
 
   describe('.use', function(){
@@ -135,11 +126,9 @@ describe('app', function(){
 
   describe('._handleHTTP', function(){
 
-    var request, response, end = sinon.spy(function end () {
-      if (response.headersSent) throw new Error('cannot set headers after they are sent');
-      response.headersSent = true;
-    });
+    var end, request, response;
     beforeEach(function(){
+      end = jasmine.createSpy('end', endFn).and.callFake(endFn);
       request = {
         method: 'GET',
         url: '/'
@@ -149,8 +138,12 @@ describe('app', function(){
         headersSent: false,
         end: end
       };
-      end.reset();
     });
+
+    function endFn () {
+      if (response.headersSent) throw new Error('cannot set headers after they are sent');
+      response.headersSent = true;
+    }
 
     describe('core functionality', function(){
 
@@ -160,8 +153,8 @@ describe('app', function(){
         expect(middleware1).not.toHaveBeenCalled();
         // simulate http event
         app._handleHTTP(request, response);
-        // sinon.match.func is a test tool that matches any function
-        expect(middleware1).toHaveBeenCalledWith(request, response, sinon.match.func);
+        // jasmine.any(Function) is a test tool that matches any function
+        expect(middleware1).toHaveBeenCalledWith(request, response, jasmine.any(Function));
       });
 
       it('calls multiple registered middleware functions in order', function(){
@@ -175,7 +168,7 @@ describe('app', function(){
         // simulate http event
         app._handleHTTP(request, response);
         expect(log).toBe('ABC');
-        expect(middleware4).toHaveBeenCalledWith(request, response, sinon.match.func);
+        expect(middleware4).toHaveBeenCalledWith(request, response, jasmine.any(Function));
       });
 
     });
@@ -193,7 +186,7 @@ describe('app', function(){
         app.use('/puppies', middleware2);
         app._handleHTTP(request, response);
         expect(middleware1).not.toHaveBeenCalled();
-        expect(middleware2).toHaveBeenCalledWith(request, response, sinon.match.func);
+        expect(middleware2).toHaveBeenCalledWith(request, response, jasmine.any(Function));
       });
 
       // REMEMBER: we are giving you a convenient `mountMatchesUrl` function!
@@ -207,17 +200,17 @@ describe('app', function(){
         app.use('/kittens/felix/siblings', middleware1);
         app._handleHTTP(request, response);
         expect(middleware1).not.toHaveBeenCalled();
-        // m2, 3, 4, 5 on matching mount paths: m1 – 5 all called
+        // m2, 3, 4, 5 on matching mount paths: m2–5 all called
         app.use('/kittens', middleware2);
         app.use('/kittens/', middleware3);
         app.use('/kittens/felix', middleware4);
         app.use('/kittens/felix/sounds', middleware5);
         app._handleHTTP(request, response);
         expect(middleware1).not.toHaveBeenCalled();
-        expect(middleware2).toHaveBeenCalledWith(request, response, sinon.match.func);
-        expect(middleware3).toHaveBeenCalledWith(request, response, sinon.match.func);
-        expect(middleware4).toHaveBeenCalledWith(request, response, sinon.match.func);
-        expect(middleware5).toHaveBeenCalledWith(request, response, sinon.match.func);
+        expect(middleware2).toHaveBeenCalledWith(request, response, jasmine.any(Function));
+        expect(middleware3).toHaveBeenCalledWith(request, response, jasmine.any(Function));
+        expect(middleware4).toHaveBeenCalledWith(request, response, jasmine.any(Function));
+        expect(middleware5).toHaveBeenCalledWith(request, response, jasmine.any(Function));
       });
 
       // note: in reality this gets more complicated with potential trailing slashes, but we will ignore that for simplicity's sake
@@ -353,14 +346,13 @@ describe('app', function(){
 
       // our test error-handling middleware has arity 4 (4 named parameters) and calls `next` with the existing error in order to continue on to the next available error-handling middleware.
       function nextErr (err, req, res, next) { if (next) next(err); }
-      namedFuncs.errMiddleware1 = nextErr;
-      namedFuncs.errMiddleware2 = nextErr;
-      var errMiddleware1 = sinon.spy(namedFuncs, 'errMiddleware1');
-      var errMiddleware2 = sinon.spy(namedFuncs, 'errMiddleware2');
 
+      var errMiddleware1, errMiddleware2;
       beforeEach(function(){
-        errMiddleware1.reset();
-        errMiddleware2.reset();
+        errMiddleware1 = jasmine.createSpy('errMiddleware1', nextErr)
+          .and.callFake(nextErr);
+        errMiddleware2 = jasmine.createSpy('errMiddleware2', nextErr)
+          .and.callFake(nextErr);
       });
 
       it('does not execute middleware with arity 4 (i.e. middleware with 4 named parameters) if there is no error', function(){
@@ -399,7 +391,7 @@ describe('app', function(){
           app._handleHTTP(request, response);
           // test what happened to the spies
           expect(middleware1).toHaveBeenCalled();
-          expect(errMiddleware1).toHaveBeenCalledWith(errObj, request, response, sinon.match.func);
+          expect(errMiddleware1).toHaveBeenCalledWith(errObj, request, response, jasmine.any(Function));
         });
 
         it('skips normal middleware if there is an error, until it reaches the next error-handling middleware', function(){
@@ -418,7 +410,7 @@ describe('app', function(){
           expect(middleware1).toHaveBeenCalled();
           expect(middleware2).not.toHaveBeenCalled();
           expect(middleware3).not.toHaveBeenCalled();
-          expect(errMiddleware1).toHaveBeenCalledWith(errObj, request, response, sinon.match.func);
+          expect(errMiddleware1).toHaveBeenCalledWith(errObj, request, response, jasmine.any(Function));
         });
 
         // the devil is in the details… lots of combinations to check!
@@ -436,7 +428,7 @@ describe('app', function(){
           // test what happened to the spies
           expect(middleware1).not.toHaveBeenCalled();
           expect(middleware2).not.toHaveBeenCalled();
-          expect(errMiddleware1).toHaveBeenCalledWith(errObj, request, response, sinon.match.func);
+          expect(errMiddleware1).toHaveBeenCalledWith(errObj, request, response, jasmine.any(Function));
         });
 
       });
@@ -457,7 +449,7 @@ describe('app', function(){
           app._handleHTTP(request, response);
           // test what happened to the spies
           expect(middleware1).not.toHaveBeenCalled();
-          expect(errMiddleware1).toHaveBeenCalledWith(errObj, request, response, sinon.match.func);
+          expect(errMiddleware1).toHaveBeenCalledWith(errObj, request, response, jasmine.any(Function));
         });
 
         // this may pass on its own, depending on your solution.
@@ -480,7 +472,7 @@ describe('app', function(){
           // test what happened to the spies
           expect(middleware1).not.toHaveBeenCalled();
           expect(middleware2).not.toHaveBeenCalled();
-          expect(errMiddleware1).toHaveBeenCalledWith(errObj, request, response, sinon.match.func);
+          expect(errMiddleware1).toHaveBeenCalledWith(errObj, request, response, jasmine.any(Function));
         });
 
       });
@@ -504,7 +496,7 @@ describe('app', function(){
             throw errObj;
           });
           app._handleHTTP(request, response);
-          expect(end).toHaveBeenCalledWithExactly(errObj);
+          expect(end).toHaveBeenCalledWith(errObj);
           expect(response).toEqual({
             statusCode: 500, // you will have to set this yourself
             headersSent: true, // set for you by calling the `end` function
@@ -520,7 +512,7 @@ describe('app', function(){
             throw errObj;
           });
           app._handleHTTP(request, response);
-          expect(end).toHaveBeenCalledWithExactly(errObj);
+          expect(end).toHaveBeenCalledWith(errObj);
           expect(response).toEqual({
             statusCode: status, // this is what we are testing
             headersSent: true,

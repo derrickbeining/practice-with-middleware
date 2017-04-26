@@ -2,7 +2,9 @@
 /* global mountMatchesUrl */
 
 // you can change `xdecribe` to `describe` to see these tests pass.
-xdescribe('mountMatchesUrl', function(){
+describe('mountMatchesUrl', function(){
+
+  pending('Remove `pending` call from helper.spec.js to see these tests pass');
 
   var mount, url;
 

@@ -1,8 +1,12 @@
 'use strict';
 /* global Middler queryParser */
+/* eslint-disable  new-cap */
 
 // Extra Credit! If you have a working Middler framework, let's try actually writing some middleware for it to use. Change `xdescribe` to `describe` to activate this extra challenge.
-xdescribe('middleware', function(){
+describe('middleware', function(){
+
+  // delete this line to run the specs:
+  pending('Remove `pending` call from xtra.spec.js to try the extra credit');
 
   var app, request, response;
   beforeEach(function(){
