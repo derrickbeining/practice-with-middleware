@@ -172,6 +172,16 @@ describe('app', function(){
         expect(middleware4).toHaveBeenCalledWith(request, response, jasmine.any(Function));
       });
 
+      it('does not modify the app', function(){
+        app.use(middleware1, middleware2, middleware3);
+        app._handleHTTP(request, response);
+        expect(app._chain).toEqual([
+          { mount: '/', middleware: middleware1 },
+          { mount: '/', middleware: middleware2 },
+          { mount: '/', middleware: middleware3 }
+        ]);
+      });
+
     });
 
     describe('mount path matching and url modification', function(){
