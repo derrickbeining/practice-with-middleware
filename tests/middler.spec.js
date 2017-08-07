@@ -306,7 +306,7 @@ describe('app', function(){
 
     describe('explicitly passing control', function(){
 
-      it('only continues on to the next middleware when the current middleware calls `next`', function(){
+      xit('only continues on to the next middleware when the current middleware calls `next`', function(){
         var log = '';
         app.use(function f1 (req, res, next){
           log += 'called f1.';
@@ -325,7 +325,7 @@ describe('app', function(){
         expect(log).toBe('called f1. called f2.'); // never got to f3
       });
 
-      it('can handle async middleware by letting the `next` call asynchronously trigger the next middleware in the chain.', function(done){
+      xit('can handle async middleware by letting the `next` call asynchronously trigger the next middleware in the chain.', function(done){
         var log = '';
         app.use(function f1 (req, res, next){
           log += 'called f1.';
@@ -366,13 +366,13 @@ describe('app', function(){
           .and.callFake(nextErr);
       });
 
-      it('does not execute middleware with arity 4 (i.e. middleware with 4 named parameters) if there is no error', function(){
+      xit('does not execute middleware with arity 4 (i.e. middleware with 4 named parameters) if there is no error', function(){
         app.use(errMiddleware1);
         app._handleHTTP(request, response);
         expect(errMiddleware1).not.toHaveBeenCalled();
       });
 
-      it('*skips* error-handling middleware (arity 4) if there is no error, by moving on to the next normal middleware (arity 3 or less)', function(){
+      xit('*skips* error-handling middleware (arity 4) if there is no error, by moving on to the next normal middleware (arity 3 or less)', function(){
         // middleware registration
         app.use(middleware1);
         app.use(errMiddleware1);
@@ -389,7 +389,7 @@ describe('app', function(){
 
       describe('explicit triggering', function(){
 
-        it('executes error middleware if a truthy value is passed to the `next` function', function(){
+        xit('executes error middleware if a truthy value is passed to the `next` function', function(){
           // error instances (objects) are one example of a truthy value
           var errObj = new Error('example error object');
           // middleware registration
@@ -405,7 +405,7 @@ describe('app', function(){
           expect(errMiddleware1).toHaveBeenCalledWith(errObj, request, response, jasmine.any(Function));
         });
 
-        it('skips normal middleware if there is an error, until it reaches the next error-handling middleware', function(){
+        xit('skips normal middleware if there is an error, until it reaches the next error-handling middleware', function(){
           var errObj = new Error('example error object');
           // middleware registration
           app.use(middleware1);
@@ -425,7 +425,7 @@ describe('app', function(){
         });
 
         // the devil is in the details… lots of combinations to check!
-        it('skips normal middleware even following middleware with the wrong mount if there is an error, until it reaches the next error-handling middleware', function(){
+        xit('skips normal middleware even following middleware with the wrong mount if there is an error, until it reaches the next error-handling middleware', function(){
           var errObj = new Error('example error object');
           // middleware registration
           app.use(function triggersError (req, res, next){
@@ -448,7 +448,7 @@ describe('app', function(){
 
         // hint: you will have to use the try-catch syntax for these
 
-        it('activates error-handling middleware if normal middleware throws an error', function(){
+        xit('activates error-handling middleware if normal middleware throws an error', function(){
           var errObj = new Error('catch me if you can!');
           // middleware registration
           app.use(function throwsError (req, res, next){
@@ -464,7 +464,7 @@ describe('app', function(){
         });
 
         // this may pass on its own, depending on your solution.
-        it('activates error-handling middleware if error-handling middleware throws an error', function(){
+        xit('activates error-handling middleware if error-handling middleware throws an error', function(){
           var errObj = new Error('catch me if you can!');
           // middleware registration
           app.use(function normalTriggersError (req, res, next){
@@ -492,7 +492,7 @@ describe('app', function(){
 
     describe('final handler', function(){
 
-      it('does not modify the response if it was already sent', function(){
+      xit('does not modify the response if it was already sent', function(){
         var randomStatus = Math.floor(Math.random() * 100 + 200);
         app.use(function (req, res, next) {
           res.statusCode = randomStatus;
@@ -511,7 +511,7 @@ describe('app', function(){
 
       describe('default missing route handling', function(){
 
-        it('sets the status to 404 and calls res.end if there are no routes', function(){
+        xit('sets the status to 404 and calls res.end if there are no routes', function(){
           expect(end).not.toHaveBeenCalled();
           app._handleHTTP(request, response);
           expect(end).toHaveBeenCalled();
@@ -522,7 +522,7 @@ describe('app', function(){
           });
         });
 
-        it('sets the status to 404 and calls res.end if no route sent a response', function(){
+        xit('sets the status to 404 and calls res.end if no route sent a response', function(){
           app.use(middleware1);
           app.use('/foo', middleware2);
           app.use(middleware3);
@@ -542,7 +542,7 @@ describe('app', function(){
 
       describe('default error handling', function(){
 
-        it('sets status to 500 and calls res.end with an unhandled error if there is one', function(){
+        xit('sets status to 500 and calls res.end with an unhandled error if there is one', function(){
           var errObj = new Error('unhandled error');
           app.use(function throwsErr (req, res, next){
             throw errObj;
@@ -556,7 +556,7 @@ describe('app', function(){
           });
         });
 
-        it('honors the `.status` property of an error', function(){
+        xit('honors the `.status` property of an error', function(){
           var status = [401, 403, 404, 409][Math.floor(Math.random() * 4)];
           var errObj = new Error('unhandled error');
           errObj.status = status; // your code will have to detect this
