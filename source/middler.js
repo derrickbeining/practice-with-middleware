@@ -40,24 +40,43 @@ App.prototype._handleHTTP = function (request, response) {
   const finalIndex = middlewareChain.length - 1;
   let index = 0;
 
-  function next() {
-    request.url = reqUrl;
-    if (index <= finalIndex) {
-      const middleware = middlewareChain[index];
-      const mount = middleware.mount;
-      const isNotRoot = mount !== '/';
-      index++;
-      if (mountMatchesUrl(mount, request.url)) {
-        if (isNotRoot) {
-          request.url = reqUrl.slice(mount.length);
+  function next(err) {
+    request.url = reqUrl; // reassign original req.url
+    if (index <= finalIndex) { // stop calling next() after last middleware
+      try {
+        const current = middlewareChain[index];
+        const middleware = current.middleware;
+        const mount = current.mount;
+        index++;
+
+        if (mountMatchesUrl(mount, request.url)) { // else call next()
+
+          if (mount !== '/') {
+            request.url = reqUrl.slice(mount.length);
+          }
+
+          if (err) {
+            if (middleware.length === 4) {
+              middleware(err, request, response, next);
+            } else {
+              next(err);
+            }
+          } else if (middleware.length < 4) {
+            middleware(request, response, next)
+          } else {
+            next();
+          }
+
+        } else {
+          next(err);
         }
-        middleware.middleware(request, response, next);
-      } else {
-        next();
+      }
+      catch (error) {
+        next(error);
       }
     }
   }
 
-  next(); // starts the chain
-
+  next();
 };
+
