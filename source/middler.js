@@ -41,11 +41,11 @@ App.prototype._handleHTTP = function (request, response) {
   let index = 0;
 
   function next() {
+    request.url = reqUrl;
     if (index <= finalIndex) {
       const middleware = middlewareChain[index];
       const mount = middleware.mount;
       const isNotRoot = mount !== '/';
-      request.url = reqUrl;
       index++;
       if (mountMatchesUrl(mount, request.url)) {
         if (isNotRoot) {

@@ -306,7 +306,7 @@ describe('app', function(){
 
     describe('explicitly passing control', function(){
 
-      xit('only continues on to the next middleware when the current middleware calls `next`', function(){
+      it('only continues on to the next middleware when the current middleware calls `next`', function(){
         var log = '';
         app.use(function f1 (req, res, next){
           log += 'called f1.';
@@ -325,7 +325,7 @@ describe('app', function(){
         expect(log).toBe('called f1. called f2.'); // never got to f3
       });
 
-      xit('can handle async middleware by letting the `next` call asynchronously trigger the next middleware in the chain.', function(done){
+      it('can handle async middleware by letting the `next` call asynchronously trigger the next middleware in the chain.', function(done){
         var log = '';
         app.use(function f1 (req, res, next){
           log += 'called f1.';
