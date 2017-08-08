@@ -51,28 +51,42 @@ App.prototype._handleHTTP = function (request, response) {
 
         if (mountMatchesUrl(mount, request.url)) { // else call next()
 
-          if (mount !== '/') {
+          if (mount !== '/') { // perspectivize req.url for route
             request.url = reqUrl.slice(mount.length);
           }
 
-          if (err) {
-            if (middleware.length === 4) {
+          if (err) { // route errors to error handlers
+            if (middleware.length === 4) { //Express error handlers have arity 4
               middleware(err, request, response, next);
             } else {
               next(err);
             }
-          } else if (middleware.length < 4) {
+          } else if (middleware.length < 4) { // regular middleware has arity 3
             middleware(request, response, next)
           } else {
             next();
           }
 
-        } else {
+        } else { // mount mismatch, try next middleware
           next(err);
         }
       }
       catch (error) {
         next(error);
+      }
+
+    // all middleware in chain has been visited,
+    } else if (err) { // set up default error handling
+      if (err.status) {
+        response.statusCode = err.status;
+      } else {
+        response.statusCode = 500;
+      }
+      response.end(err);
+    } else { // no errors, if no response was sent yet, send 404
+      if (!response.headersSent) {
+        response.statusCode = 404;
+        response.end();
       }
     }
   }
